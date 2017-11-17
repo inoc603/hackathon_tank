@@ -7,6 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.json.JSONObject;
 
 public class GameStateMachine {
     private GameMap map;
@@ -36,60 +38,25 @@ public class GameStateMachine {
     }
 
     public void printReplayLog() {
-        StringBuffer sb = new StringBuffer("ReplayLog: {");
-        generateTanksLog(sb);
-        generateShellsLog(sb);
-        generateFlagLog(sb);
-        sb.append("}");
-        System.out.println(sb.toString());
-    }
+        JSONObject round = new JSONObject();
 
-    private void generateFlagLog(StringBuffer sb) {
-        if (flagPos != null) {
-            sb.append(",flag: {");
-            sb.append("position:{x:").append(flagPos.getX()).append(",y:").append(flagPos.getY()).append("}}");
+        round.put("tanks", Stream.of(getTankList(), destroyedTanks)
+                .flatMap(Collection::stream)
+                .sorted(Tank::compare)
+                .map(t -> t.toJSON())
+                .collect(Collectors.toList()));
+
+        round.put("shells", Stream.of(getShells(), destroyedShells)
+                .flatMap(Collection::stream)
+                .sorted(Shell::compare)
+                .map(t -> t.toJSON())
+                .collect(Collectors.toList()));
+
+        if  (flagPos != null) {
+            round.put("flag", flagPos.toJSON());
         }
-    }
 
-    private void generateShellsLog(StringBuffer sb) {
-        List<Shell> shells = new LinkedList<>();
-        shells.addAll(getShells());
-        shells.addAll(destroyedShells);
-        shells.sort(Shell::compare);
-
-        sb.append("shells: [");
-        for (Shell t : shells) {
-            sb.append("{");
-            sb.append("id:").append(t.getId());
-            sb.append(", dir:").append(t.getDir().name());
-            sb.append(", position:{x:").append(t.getPos().getX()).append(",y:").append(t.getPos().getY()).append("},");
-            sb.append(", status:").append(t.isDestroyed() ? "destroyed" : "alive");
-            sb.append("},");
-        }
-        if (shells.size() > 0)
-            sb.deleteCharAt(sb.length() - 1);
-        sb.append("]");
-    }
-
-    private void generateTanksLog(StringBuffer sb) {
-        List<Tank> tanks = new LinkedList<>();
-        tanks.addAll(getTankList());
-        tanks.addAll(destroyedTanks);
-        tanks.sort(Tank::compare);
-
-        sb.append("tanks: [");
-        for (Tank t : tanks) {
-            sb.append("{");
-            sb.append("id:").append(t.getId());
-            sb.append(", dir:").append(t.getDir().name());
-            sb.append(", position:{x:").append(t.getPos().getX()).append(",y:").append(t.getPos().getY()).append("}");
-            sb.append(", status:").append(t.isDestroyed() ? "destroyed" : "alive");
-            sb.append(", owner:").append(getPlayer(t).getName());
-            sb.append("},");
-        }
-        if (tanks.size() > 0)
-            sb.deleteCharAt(sb.length() - 1);
-        sb.append("],");
+        System.out.println(new StringBuffer("ReplayLog: ").append(round.toString()));
     }
 
     private void evaluateShellsMovement() {

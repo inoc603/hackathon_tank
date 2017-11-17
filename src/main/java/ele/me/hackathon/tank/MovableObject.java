@@ -1,5 +1,7 @@
 package ele.me.hackathon.tank;
 
+import org.json.JSONObject;
+
 /**
  * Created by lanjiangang on 03/11/2017.
  */
@@ -118,6 +120,13 @@ public class MovableObject {
                 ", speed=" + speed +
                 ", destroyed=" + destroyed +
                 '}';
+    }
+
+    public JSONObject toJSON() {
+        return new JSONObject()
+                .put("id", getId())
+                .put("dir", getDir())
+                .put("pos", getPos().toJSON());
     }
 
 }

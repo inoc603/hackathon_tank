@@ -1,5 +1,7 @@
 package ele.me.hackathon.tank;
 
+import org.json.JSONObject;
+
 /**
  * Created by lanjiangang on 27/10/2017.
  */
@@ -64,4 +66,9 @@ public class Tank extends  MovableObject {
     public static int compare(Tank x, Tank y) {
         return (x.getId() < y.getId()) ? -1 : ((x.getId() == y.getId()) ? 0 : 1);
     }
+
+    public JSONObject toJSON() {
+        return super.toJSON().put("hp", getHp());
+    }
+
 }

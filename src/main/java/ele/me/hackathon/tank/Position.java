@@ -1,5 +1,7 @@
 package ele.me.hackathon.tank;
 
+import org.json.JSONObject;
+
 /**
  * Created by lanjiangang on 27/10/2017.
  */
@@ -91,6 +93,10 @@ public class Position {
                 "x=" + x +
                 ", y=" + y +
                 '}';
+    }
+
+    public JSONObject toJSON() {
+        return new JSONObject().put("x", getX()).put("y", getY());
     }
 
 }
