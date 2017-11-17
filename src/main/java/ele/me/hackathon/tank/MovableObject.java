@@ -126,7 +126,7 @@ public class MovableObject {
         return new JSONObject()
                 .put("id", getId())
                 .put("dir", getDir())
-                .put("destryed", isDestroyed())
+                .put("destroyed", isDestroyed())
                 .put("pos", getPos().toJSON());
     }
 

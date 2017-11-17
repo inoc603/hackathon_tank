@@ -19,6 +19,7 @@ public class GameStateMachine {
     private GameOptions options;
     private List<Tank> destroyedTanks = new LinkedList<>();
     private List<Shell> destroyedShells = new LinkedList<>();
+    private List<JSONObject> replays = new LinkedList<>();
 
     public GameStateMachine(Map<Integer, Tank> tanks, GameMap map) {
         this.tanks = tanks;
@@ -33,30 +34,31 @@ public class GameStateMachine {
         evaluateFireActions(filtOrder(orders, "fire"));
         evaluateTurnDirectionActions(filtOrder(orders, "turnTo"));
         evaluateMoveActions(filtOrder(orders, "move"));
-
-        printReplayLog();
     }
 
-    public void printReplayLog() {
+    public JSONObject getReplay() {
         JSONObject round = new JSONObject();
 
         round.put("tanks", Stream.of(getTankList(), destroyedTanks)
                 .flatMap(Collection::stream)
                 .sorted(Tank::compare)
-                .map(t -> t.toJSON())
+                .map(Tank::toJSON)
                 .collect(Collectors.toList()));
 
         round.put("shells", Stream.of(getShells(), destroyedShells)
                 .flatMap(Collection::stream)
                 .sorted(Shell::compare)
-                .map(t -> t.toJSON())
+                .map(Shell::toJSON)
                 .collect(Collectors.toList()));
 
         if  (flagPos != null) {
             round.put("flag", flagPos.toJSON());
         }
 
+        // FIXME: Having side effect in this function is bad.
         System.out.println(new StringBuffer("ReplayLog: ").append(round.toString()));
+
+        return round;
     }
 
     private void evaluateShellsMovement() {
@@ -183,7 +185,6 @@ public class GameStateMachine {
             });
 
             tanksToMove.removeIf(t -> t.isDestroyed());
-            printReplayLog();
             clearDestroyedTargets();
         }
     }

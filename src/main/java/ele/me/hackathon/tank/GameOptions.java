@@ -1,5 +1,7 @@
 package ele.me.hackathon.tank;
 
+import org.json.JSONObject;
+
 /**
  * Created by lanjiangang on 09/11/2017.
  */
@@ -76,5 +78,17 @@ public class GameOptions {
 
     public void setNoOfTanks(int noOfTanks) {
         this.noOfTanks = noOfTanks;
+    }
+
+    public JSONObject toJSON() {
+        return new JSONObject()
+                .put("tankSpeed", tankSpeed)
+                .put("noOfTanks", noOfTanks)
+                .put("shellSpeed", shellSpeed)
+                .put("tankHP", tankHP)
+                .put("tankScore", tankScore)
+                .put("flagScore", flagScore)
+                .put("maxRound", maxRound)
+                .put("roundTimeout", roundTimeout);
     }
 }

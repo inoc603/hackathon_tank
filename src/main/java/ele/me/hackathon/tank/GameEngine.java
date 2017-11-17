@@ -10,6 +10,8 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -31,6 +33,8 @@ public class GameEngine {
     private String playerBAddres;
     private boolean flagGenerated = false;
     private int noOfFlagGenerated = 0;
+
+    private JSONArray history = new JSONArray();
 
     private Map<String, PlayerServer.Client> clients = new ConcurrentHashMap<>();
     private Map<String, Player> players;
@@ -131,6 +135,13 @@ public class GameEngine {
         return tanks;
     }
 
+    private JSONObject getReplay() {
+        return new JSONObject()
+            .put("param", gameOptions.toJSON())
+            .put("map", map.getPixels())
+            .put("rounds", this.history);
+    }
+
     private void play() {
         List<PlayerInteract> actors = Arrays.asList(new String[] { playerAAddres, playerBAddres }).stream().map(name -> buildPlayerInteract(name, gameOptions))
                 .collect(Collectors.toList());
@@ -142,7 +153,7 @@ public class GameEngine {
         actors.forEach(act -> act.start());
 
         //print the init state
-        stateMachine.printReplayLog();
+        history.put(stateMachine.getReplay());
 
         //send a singal tp upload map and tank list
         stateQueues.values().forEach(q -> q.offer(new GameState("fakeState")));
@@ -165,6 +176,7 @@ public class GameEngine {
             });
 
             stateMachine.newOrders(orders);
+            history.put(stateMachine.getReplay());
 
             if (stateMachine.gameOvered()) {
                 break;
@@ -172,6 +184,9 @@ public class GameEngine {
 
             checkGenerateFlag(round);
         }
+
+        // TODO: It's better to write the replay to a file
+        System.out.printf("FullReplay: %s\n", getReplay().toString());
 
         calculateResult(round);
         reportResult();
